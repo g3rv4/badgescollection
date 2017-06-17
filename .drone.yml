@@ -1,0 +1,11 @@
+pipeline:
+  build:
+    image: g3rv4/docker
+    commands:
+      - "git clone git@ssh.gogs.gmc.uy:docker/badgescollection.git"
+      - "cd badgescollection"
+      - "git rm src"
+      - "git submodule add git@ssh.gogs.gmc.uy:g3rv4/badgescollection.git src"
+      - "git reset .gitmodules"
+      - "git commit -m \"code update\""
+      - "git push"
