@@ -3,10 +3,8 @@ from flask_oauth2_login import GoogleLogin
 from flask_login import LoginManager, login_required, login_user
 from itsdangerous import TimedSerializer, BadTimeSignature
 import datetime
-import pyqrcode
 import urllib
 import os
-import io
 import re
 
 app = Flask(__name__)
@@ -25,8 +23,6 @@ accepted_emails = re.compile(os.environ['ACCEPTED_EMAILS_REGEX'])
 redirect_url = os.environ['REDIRECT_URL']
 id_file = os.environ['ID_FILE_PATH']
 
-print os.environ['ACCEPTED_EMAILS_REGEX']
-
 
 @app.route("/")
 @login_required
@@ -41,19 +37,9 @@ def index():
 
     request = last + 1
     token = serializer.dumps(request)
-    url = pyqrcode.create(redirect_url.replace('__token__', urllib.quote(token)))
+    url = redirect_url.replace('__token__', urllib.quote(token))
 
-    buffer = io.BytesIO()
-    url.svg(buffer)
-    svg = buffer.getvalue()
-
-    # hacky hack to make the svg size CSS adjustable in a non hacky way... hacky python > hacky CSS
-    width = re.search('width="([0-9]+)"', svg).group(1)
-    height = re.search('height="([0-9]+)"', svg).group(1)
-    svg = re.sub('((height)|(width))="[0-9]+" ', '', svg)
-    svg = svg.replace('<svg', '<svg viewBox="0 0 %s %s"' % (width, height))
-
-    return render_template('index.html', qrcode=svg, token=token, when=datetime.datetime.utcnow())
+    return render_template('index.html', url=url, token=token, when=datetime.datetime.utcnow())
 
 
 @app.route("/get-new-badge")
